@@ -42,6 +42,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -412,13 +413,17 @@ public class DefaultPlatformManager implements PlatformManagerInternal, ModuleRe
         // We unzip the module into a temp directory
         ModuleZipInfo info = new ModuleZipInfo(false, zipFileName);
         ModuleIdentifier modID = new ModuleIdentifier("__vertx~" + UUID.randomUUID().toString() + "~__vertx");
-        File modRoot = new File(TEMP_DIR + FILE_SEP + "vertx-zip-mods");
-        File tempDir = new File(modRoot, modID.toString());
-        tempDir.mkdirs();
-        unzipModuleData(tempDir, info, false);
-        // And run it from there
-        deployModuleFromFileSystem(modRoot, null, modID, config, instances, null, false, wrapped);
-        addTmpDeployment(tempDir.getAbsolutePath());
+        try {
+            File modRoot = Files.createTempDirectory("vertx-zip-mods").toFile();
+            File tempDir = new File(modRoot, modID.toString());
+            tempDir.mkdirs();
+            unzipModuleData(tempDir, info, false);
+            // And run it from there
+            deployModuleFromFileSystem(modRoot, null, modID, config, instances, null, false, wrapped);
+            addTmpDeployment(tempDir.getAbsolutePath());
+        } catch (IOException ioe) {
+            throw new PlatformManagerException("Failed to create temporary directory", ioe);
+        }
       }
     }, wrapped);
   }
