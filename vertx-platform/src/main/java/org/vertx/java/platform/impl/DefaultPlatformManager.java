@@ -414,7 +414,8 @@ public class DefaultPlatformManager implements PlatformManagerInternal, ModuleRe
         ModuleZipInfo info = new ModuleZipInfo(false, zipFileName);
         ModuleIdentifier modID = new ModuleIdentifier("__vertx~" + UUID.randomUUID().toString() + "~__vertx");
         try {
-            File modRoot = Files.createTempDirectory("vertx-zip-mods").toFile();
+            File modRoot = Files.createTempDirectory("vertx-zip-mods-").toFile();
+            modRoot.deleteOnExit();
             File tempDir = new File(modRoot, modID.toString());
             tempDir.mkdirs();
             unzipModuleData(tempDir, info, false);
